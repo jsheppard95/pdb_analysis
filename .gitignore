@@ -1,0 +1,6 @@
+# Archives
+*.tar.gz
+*.zip
+
+# Large PDB files
+*.pdb
