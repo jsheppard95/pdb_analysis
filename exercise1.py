@@ -67,7 +67,7 @@ def ResHydrophobic(ResNames):
     return np.isin(ResNames, HYDROPHOBIC_RES)
 
 
-def RediusOfGyration(Pos):
+def RadiusOfGyration(Pos):
     """
     Computes the radius of gyration for a set of atomic positions. The radius
     of gyration for a collection of N coordinates is given by:
@@ -86,7 +86,12 @@ def RediusOfGyration(Pos):
     Rg - float - the corresponding radius of gyration for the positions
         defined in `Pos`
     """
-    pass
+    # Compute average atomic position
+    r_avg = np.mean(Pos, axis=0)
+    # Compute Rg^2, the radius of gyration squared
+    Rg_sq = np.mean(np.linalg.norm(Pos - r_avg, axis=1)**2, axis=0)
+    Rg = np.sqrt(Rg_sq)
+    return Rg
 
 
 # Main function
@@ -105,6 +110,7 @@ def RediusOfGyration(Pos):
 
 if __name__ == "__main__":
     pos, res_names = ReadPDB("proteins/T0639-D1.pdb")
-    print(pos[:10])
-    print(res_names[:10])
-    print(ResHydrophobic(res_names[:10]))
+    print(pos[:3])
+    print(res_names[:3])
+    print(ResHydrophobic(res_names[:3]))
+    print(RadiusOfGyration(pos[:3]))
