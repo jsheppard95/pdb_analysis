@@ -5,6 +5,7 @@ Author: Jackson Sheppard
 Last Edit: 10/3/22
 """
 import glob
+import matplotlib.pyplot as plt
 import numpy as np
 
 def ReadPDB(PdbFile):
@@ -25,15 +26,15 @@ def ReadPDB(PdbFile):
     """
     Pos = []
     ResNames = []
-    ATOM_MIN_COL = 13
+    ATOM_MIN_COL = 13  # Atom: N, CA, CB, ...
     ATOM_MAX_COL = 16
-    RES_MIN_COL = 18
+    RES_MIN_COL = 18  # Residue: SER, HIS, TYR, ...
     RES_MAX_COL = 20
-    X_MIN_COL = 31
+    X_MIN_COL = 31  # x coord in Angstroms
     X_MAX_COL = 38
-    Y_MIN_COL = 39
+    Y_MIN_COL = 39  # y coord in Angstroms
     Y_MAX_COL = 46
-    Z_MIN_COL = 47
+    Z_MIN_COL = 47  # z coord in Angstroms
     Z_MAX_COL = 54
     with open(PdbFile, "r") as f:
         # Read header
@@ -90,7 +91,8 @@ def RadiusOfGyration(Pos):
     Returns:
     --------
     Rg - float - the corresponding radius of gyration for the positions
-        defined in `Pos`
+        defined in `Pos` with the same units as that of the coordinates in
+        `Pos`
     """
     # Compute average atomic position
     r_avg = np.mean(Pos, axis=0)
@@ -117,14 +119,46 @@ def RadiusOfGyration(Pos):
 if __name__ == "__main__":
     # Get all pdb files in working directory
     pdb_files = glob.glob("./**/*.pdb")
-    pos, res_names = ReadPDB("proteins/T0639-D1.pdb")
-    # Iterate through PDB files
-    for fname in pdb_files:
+
+    # Read PDB files
+    n_prot = len(pdb_files)
+    Rg_alls = np.zeros(n_prot)
+    Rg_phobics = np.zeros(n_prot)
+    Rg_ratios = np.zeros(n_prot)
+    chain_lengths = np.zeros(n_prot)
+    for i in range(len(pdb_files)):
         # read file
-        pos, res_names = ReadPDB(fname)
+        pos, res_names = ReadPDB(pdb_files[i])
         # Compute Rg for all amino acids
         Rg_all = RadiusOfGyration(pos)
+        # Get hydrophobic resiudes boolean away
         phobic_mask = ResHydrophobic(res_names)
+        # Compute Rg for hydropghobic resiudes only
         Rg_phobic = RadiusOfGyration(pos[phobic_mask])
+        # Compute ration Rg,phobic/Rg,all
         Rg_ratio = Rg_phobic/Rg_all
-        print(fname, len(res_names), Rg_all, Rg_phobic, Rg_ratio)
+        # Get chain length
+        n_res = len(res_names)
+        # Output results and save data
+        print(pdb_files[i], n_res, Rg_all, Rg_phobic, Rg_ratio)
+        Rg_alls[i] = Rg_all
+        Rg_phobics[i] = Rg_phobic
+        Rg_ratios[i] = Rg_ratio
+        chain_lengths[i] = n_res
+    
+    # Plot data
+    f1, ax1 = plt.subplots()
+    ax1.plot(chain_lengths, Rg_alls, ".", label=r"All Residues, $R_g$")
+    ax1.plot(chain_lengths, Rg_phobics, ".", label=r"Hydrophobic Residues Only, $R_{g,phobic}$")
+    ax1.legend()
+    ax1.set_xlabel("Chain Length (Number of Residues)")
+    ax1.set_ylabel(r"Radius of Gyration, $\AA$")
+    f1.show()
+
+    f2, ax2 = plt.subplots()
+    ax2.plot(chain_lengths, Rg_ratios, ".")
+    ax2.set_xlabel("Chain Length (Number of Residues)")
+    ax2.set_ylabel(r"Ratio Hydrophobic to All, $R_{g,phobic}/R_g$")
+    f2.show()
+
+    plt.show()
