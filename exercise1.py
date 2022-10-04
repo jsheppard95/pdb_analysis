@@ -5,13 +5,15 @@ Author: Jackson Sheppard
 Last Edit: 10/3/22
 """
 import glob
+from itertools import combinations
 import matplotlib.pyplot as plt
 import numpy as np
 
 
 def ReadPDB(PdbFile):
     """
-    Function to a read a protein PDB file.
+    Reads a protein PDB file and stores alpha carbon resiude names and their
+    atomic positions.
 
     Parameters:
     -----------
@@ -23,7 +25,7 @@ def ReadPDB(PdbFile):
         Pos - numpy.array - An (N, 3) dimensional NumPy array containing the
             position of the alpha carbon in each of the N amino acid residues
         ResNames - list - A length N list containing the three-latter code for
-            the type of each of the corresponding amino acid residues.
+            the type of each of the corresponding amino acid residues
     """
     Pos = []
     ResNames = []
@@ -57,7 +59,7 @@ def ReadPDB(PdbFile):
 def ResHydrophobic(ResNames):
     """
     Determines which residue codes in `ResNames` correspond to hydrophic or
-    hydrophillic residues
+    hydrophillic residues.
 
     Parameters:
     -----------
@@ -103,6 +105,31 @@ def RadiusOfGyration(Pos):
     return Rg
 
 
+def GetContacts(Pos):
+    """
+    Finds amino-acid contact pairs. A contact between two amino acid resiudes
+    can be declared when the distance between their alpha carbons is less than
+    a certain cutoff, here 9 Angstroms.
+    Parameters:
+    -----------
+    Pos - numpy.array - dimension (N, 3) array of atomic positions
+
+    Returns:
+    --------
+    Contacts - list - list of (i, j) tuples giving all residue-residue
+        contacts in Pos
+    """
+    CONTACT_CUTOFF = 9.0  # contact cutoff distance in Angstroms
+    pos_combos = list(combinations(Pos, r=2))
+    pos_idxs = list(combinations(np.arange(len(Pos)), r=2))
+    Contacts = []
+    for i in range(len(pos_combos)):
+        pair_dist = np.linalg.norm(pos_combos[i][0] - pos_combos[i][1])
+        if pair_dist < CONTACT_CUTOFF:
+            Contacts.append(pos_idxs[i])
+    return Contacts
+
+
 # Main function
 # Make a list of all pdb files in the working path (using `glob`)
 # For each pdb file:
@@ -118,6 +145,9 @@ def RadiusOfGyration(Pos):
 # - Rg,phobic/Rg vs. chain length (number of residues)
 
 if __name__ == "__main__":
+    AMINO_ACIDS = np.asarray(["ALA", "CYS", "PHE", "ILE", "LEU", "MET", "PRO",
+                              "VAL", "TRP", "ASP", "GLU", "GLY", "HIS", "LYS",
+                              "ASN", "GLN", "ARG", "SER", "THR", "TYR"])
     # Get all pdb files in working directory
     pdb_files = glob.glob("./**/*.pdb")
 
@@ -127,6 +157,7 @@ if __name__ == "__main__":
     Rg_phobics = np.zeros(n_prot)
     Rg_ratios = np.zeros(n_prot)
     chain_lengths = np.zeros(n_prot)
+    aa_counts = np.zeros(len(AMINO_ACIDS))
     for i in range(len(pdb_files)):
         # read file
         pos, res_names = ReadPDB(pdb_files[i])
@@ -146,6 +177,18 @@ if __name__ == "__main__":
         Rg_phobics[i] = Rg_phobic
         Rg_ratios[i] = Rg_ratio
         chain_lengths[i] = n_res
+
+        # Tally amino acid counts
+        for res in res_names:
+            res_idx = np.where(AMINO_ACIDS == res)
+            aa_counts[res_idx] += 1
+
+    # Get AA fractions f_k over entire data set
+    # indeces -> those in AMINO_ACIDS
+    f_k = aa_counts/np.sum(aa_counts)
+
+    # Get contacts
+    contact_indeces = GetContacts(pos)
 
     # Plot data
     f1, ax1 = plt.subplots()
