@@ -4,6 +4,7 @@ exercise1.py
 Author: Jackson Sheppard
 Last Edit: 10/3/22
 """
+import glob
 import numpy as np
 
 def ReadPDB(PdbFile):
@@ -24,23 +25,28 @@ def ReadPDB(PdbFile):
     """
     Pos = []
     ResNames = []
-    ATOM_IDX = 2
-    RES_IDX = 3
-    X_IDX = 5
-    Y_IDX = 6
-    Z_IDX = 7
+    ATOM_MIN_COL = 13
+    ATOM_MAX_COL = 16
+    RES_MIN_COL = 18
+    RES_MAX_COL = 20
+    X_MIN_COL = 31
+    X_MAX_COL = 38
+    Y_MIN_COL = 39
+    Y_MAX_COL = 46
+    Z_MIN_COL = 47
+    Z_MAX_COL = 54
     with open(PdbFile, "r") as f:
         # Read header
         f.readline()
         # Start reading data
         line = f.readline()
         while line != "TER\n":
-            line_split = line.split()
-            if line_split[ATOM_IDX] == "CA":  # add alpha carbon residues only
-                ResNames.append(line_split[RES_IDX])
-                Pos.append([float(line_split[X_IDX]),
-                            float(line_split[Y_IDX]),
-                            float(line_split[Z_IDX])])
+            # add alpha carbon residues only
+            if "CA" in line[ATOM_MIN_COL-1: ATOM_MAX_COL]:
+                ResNames.append(line[RES_MIN_COL-1: RES_MAX_COL])
+                Pos.append([float(line[X_MIN_COL-1: X_MAX_COL]),
+                            float(line[Y_MIN_COL-1: Y_MAX_COL]),
+                            float(line[Z_MIN_COL-1: Z_MAX_COL])])
             line = f.readline()
     Pos = np.asarray(Pos)
     return Pos, ResNames
@@ -100,7 +106,7 @@ def RadiusOfGyration(Pos):
 ## 1. Read the file
 ## 2. Compute Rg for all amino acid residues
 ## 3. Compute Rg,phobic for only the hydrophobic amino acid residues
-## 4. Compute the ration Rg,phobic/Rg
+## 4. Compute the ratio Rg,phobic/Rg
 ## 5. Print the filename, the number of residues, and items 2-4, in a single
 #     line.
 
@@ -109,8 +115,16 @@ def RadiusOfGyration(Pos):
 ## Rg,phobic/Rg vs. chain length (number of residues)
 
 if __name__ == "__main__":
+    # Get all pdb files in working directory
+    pdb_files = glob.glob("./**/*.pdb")
     pos, res_names = ReadPDB("proteins/T0639-D1.pdb")
-    print(pos[:3])
-    print(res_names[:3])
-    print(ResHydrophobic(res_names[:3]))
-    print(RadiusOfGyration(pos[:3]))
+    # Iterate through PDB files
+    for fname in pdb_files:
+        # read file
+        pos, res_names = ReadPDB(fname)
+        # Compute Rg for all amino acids
+        Rg_all = RadiusOfGyration(pos)
+        phobic_mask = ResHydrophobic(res_names)
+        Rg_phobic = RadiusOfGyration(pos[phobic_mask])
+        Rg_ratio = Rg_phobic/Rg_all
+        print(fname, len(res_names), Rg_all, Rg_phobic, Rg_ratio)

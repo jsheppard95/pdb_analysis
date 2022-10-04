@@ -5,5 +5,4 @@ __pycache__/
 *.tar.gz
 *.zip
 
-# Large PDB files
-*.pdb
+exercise1_output.txt
