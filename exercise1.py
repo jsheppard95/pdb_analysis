@@ -8,14 +8,15 @@ import glob
 import matplotlib.pyplot as plt
 import numpy as np
 
+
 def ReadPDB(PdbFile):
     """
     Function to a read a protein PDB file.
-    
+
     Parameters:
     -----------
     PdbFile - str - the string filename of a PDB file
-    
+
     Returns:
     --------
     Pos, ResNames - tuple
@@ -79,7 +80,7 @@ def RadiusOfGyration(Pos):
     Computes the radius of gyration for a set of atomic positions. The radius
     of gyration for a collection of N coordinates is given by:
 
-    R_g^2 = (1/N) * \sum_{i=1}^N |r_i - <r>|^2, <r> = (1/N) * \sum_{i=1}^N r_i
+    R_g^2 = (1/N) * sum_{i=1}^N |r_i - <r>|^2, <r> = (1/N) * sum_{i=1}^N r_i
 
     where r_i is the vector defininig the position of atom i and <r> is the
     average position.
@@ -105,16 +106,16 @@ def RadiusOfGyration(Pos):
 # Main function
 # Make a list of all pdb files in the working path (using `glob`)
 # For each pdb file:
-## 1. Read the file
-## 2. Compute Rg for all amino acid residues
-## 3. Compute Rg,phobic for only the hydrophobic amino acid residues
-## 4. Compute the ratio Rg,phobic/Rg
-## 5. Print the filename, the number of residues, and items 2-4, in a single
-#     line.
+# 1. Read the file
+# 2. Compute Rg for all amino acid residues
+# 3. Compute Rg,phobic for only the hydrophobic amino acid residues
+# 4. Compute the ratio Rg,phobic/Rg
+# 5. Print the filename, the number of residues, and items 2-4, in a single
+#    line.
 
 # Plot the following:
-## Rg,phobic and Rg vs. chain length (number of residues)
-## Rg,phobic/Rg vs. chain length (number of residues)
+# - Rg,phobic and Rg vs. chain length (number of residues)
+# - Rg,phobic/Rg vs. chain length (number of residues)
 
 if __name__ == "__main__":
     # Get all pdb files in working directory
@@ -145,11 +146,12 @@ if __name__ == "__main__":
         Rg_phobics[i] = Rg_phobic
         Rg_ratios[i] = Rg_ratio
         chain_lengths[i] = n_res
-    
+
     # Plot data
     f1, ax1 = plt.subplots()
     ax1.plot(chain_lengths, Rg_alls, ".", label=r"All Residues, $R_g$")
-    ax1.plot(chain_lengths, Rg_phobics, ".", label=r"Hydrophobic Residues Only, $R_{g,phobic}$")
+    ax1.plot(chain_lengths, Rg_phobics, ".",
+             label=r"Hydrophobic Residues Only, $R_{g,phobic}$")
     ax1.legend()
     ax1.set_xlabel("Chain Length (Number of Residues)")
     ax1.set_ylabel(r"Radius of Gyration, $\AA$")
