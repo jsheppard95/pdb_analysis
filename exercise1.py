@@ -97,13 +97,13 @@ def RadiusOfGyration(Pos):
         defined in `Pos` with the same units as that of the coordinates in
         `Pos`
     """
-    # Compute average atomic position
-    r_avg = np.mean(Pos, axis=0)
-    # Compute Rg^2, the radius of gyration squared
-    Rg_sq = np.mean(np.linalg.norm(Pos - r_avg, axis=1)**2, axis=0)
-    Rg = np.sqrt(Rg_sq)
-    return Rg
-
+    # Average atomic position: r_avg = np.mean(Pos, axis=0)
+    # Rg^2 = the radius of gyration squared
+    # Rg^2 = np.mean(np.linalg.norm(Pos - r_avg, axis=1)**2, axis=0)
+    # Rg = np.sqrt(Rg^2)
+    return np.sqrt(
+        np.mean(np.linalg.norm(Pos - np.mean(Pos, axis=0), axis=1)**2, axis=0)
+    )
 
 def GetContacts(Pos):
     """
