@@ -105,6 +105,7 @@ def RadiusOfGyration(Pos):
         np.mean(np.linalg.norm(Pos - np.mean(Pos, axis=0), axis=1)**2, axis=0)
     )
 
+
 def GetContacts(Pos):
     """
     Finds amino-acid contact pairs. A contact between two amino acid resiudes
@@ -117,7 +118,8 @@ def GetContacts(Pos):
     Returns:
     --------
     Contacts - list - list of (i, j) tuples giving all residue-residue
-        contacts in Pos
+        contacts in Pos, (i, j) indeces correspond to those in `Pos`, returns
+        distinct pairs only, i.e returns (i1, j1) but not (j1, i1)
     """
     CONTACT_CUTOFF = 9.0  # contact cutoff distance in Angstroms
     pos_combos = list(combinations(Pos, r=2))
@@ -148,6 +150,7 @@ if __name__ == "__main__":
     AMINO_ACIDS = np.asarray(["ALA", "CYS", "PHE", "ILE", "LEU", "MET", "PRO",
                               "VAL", "TRP", "ASP", "GLU", "GLY", "HIS", "LYS",
                               "ASN", "GLN", "ARG", "SER", "THR", "TYR"])
+    N_AA = len(AMINO_ACIDS)
     # Get all pdb files in working directory
     pdb_files = glob.glob("./**/*.pdb")
 
@@ -157,7 +160,11 @@ if __name__ == "__main__":
     Rg_phobics = np.zeros(n_prot)
     Rg_ratios = np.zeros(n_prot)
     chain_lengths = np.zeros(n_prot)
-    aa_counts = np.zeros(len(AMINO_ACIDS))
+    # arrays to hold resiude total counts and contact counts used to compute
+    # fractions for statistical interaction potentials
+    # indeces -> those in `AMINO_ACIDS`
+    aa_counts = np.zeros(N_AA)
+    contact_counts = np.zeros((N_AA, N_AA))
     for i in range(len(pdb_files)):
         # read file
         pos, res_names = ReadPDB(pdb_files[i])
@@ -183,12 +190,31 @@ if __name__ == "__main__":
             res_idx = np.where(AMINO_ACIDS == res)
             aa_counts[res_idx] += 1
 
+        # Get contacts and tally counts
+        contacts = GetContacts(pos)
+        for contact in contacts:
+            # Get the residue names for the indeces return by GetContacts
+            contact_res = [res_names[contact[0]], res_names[contact[1]]]
+            # Get indeces for these resiudes defined by `AMINO_ACIDS`
+            contact_indeces = np.where(np.in1d(AMINO_ACIDS, contact_res))[0]
+            if contact_res[0] == contact_res[1]:
+                # handle a contact between two of the same residue types
+                contact_indeces = np.concatenate(
+                    (contact_indeces, contact_indeces)
+                )
+
+            # Tally contact counts
+            contact_counts[contact_indeces[0], contact_indeces[1]] += 1
+            # count the symmetric interaction
+            contact_counts[contact_indeces[1], contact_indeces[0]] += 1
+
     # Get AA fractions f_k over entire data set
     # indeces -> those in AMINO_ACIDS
     f_k = aa_counts/np.sum(aa_counts)
 
-    # Get contacts
-    contact_indeces = GetContacts(pos)
+    # Smell check - any zeros in contact_counts?
+    print(np.where(contact_counts == 0))
+    print(np.where(f_k == 0))
 
     # Plot data
     f1, ax1 = plt.subplots()
