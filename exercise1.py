@@ -290,6 +290,7 @@ if __name__ == "__main__":
 
     # Plot data
     # Radius of Gyration (All Resiudes and Hydrophobic Resiudes Only)
+    OUTPUT_DIR = "output/"
     f1, ax1 = plt.subplots()
     ax1.plot(chain_lengths, Rg_alls, ".", label=r"All Residues, $R_g$")
     ax1.plot(chain_lengths, Rg_phobics, ".",
@@ -297,6 +298,7 @@ if __name__ == "__main__":
     ax1.legend()
     ax1.set_xlabel("Chain Length (Number of Residues)")
     ax1.set_ylabel(r"Radius of Gyration, $\AA$")
+    f1.savefig(OUTPUT_DIR + "Rg_length.png")
     f1.show()
 
     # Rg,phobic/Rg,all0
@@ -304,6 +306,7 @@ if __name__ == "__main__":
     ax2.plot(chain_lengths, Rg_ratios, ".")
     ax2.set_xlabel("Chain Length (Number of Residues)")
     ax2.set_ylabel(r"Ratio Hydrophobic to All, $R_{g,phobic}/R_g$")
+    f2.savefig(OUTPUT_DIR + "Rg_ratio_length.png")
     f2.show()
 
     # potential energy heat map
@@ -336,6 +339,7 @@ if __name__ == "__main__":
     ax4.axis("off")
     ax4.axis("tight")
     f3.tight_layout()
+    f3.savefig(OUTPUT_DIR + "contact_potential.png")
     f3.show()
 
     plt.show()
