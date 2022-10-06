@@ -7,7 +7,7 @@ CH E 210D, Exercise 1\
 Here we present an analysis of 309 protein sequences, computing structural
 quantities such as the radius of gyration and statistical interaction
 potentials. The input sequences are stored in
-[The Protein Data Bank](www.pdb.org) `*.pdb` format and reside in the
+[The Protein Data Bank](https://www.rcsb.org/) `*.pdb` format and reside in the
 `proteins/` directory at the root of this repository. Each file consists of
 a protein X-ray crystal structure and thus includes atomic `X`, `Y`, `Z`
 coordinates of each amino acid (residue) comprising the protein structure. In
