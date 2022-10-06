@@ -96,4 +96,7 @@ potential between amino acids (i, j) is the same as that between amino acids
 
 Comparing this result with
 [Macromolecules 18, 534 (1985)](https://pubs.acs.org/doi/10.1021/ma00145a039),
-we find reasonable agreement.
+we find reasonable agreement. We also find our most favorable (most negative)
+interaction potential to be that for the Cys-Cys contact and the least
+favorable (most positive) to be that for the Arg-Arg, Lys-Lys, Asp-Asp, and Glu-Glu
+contacts.
