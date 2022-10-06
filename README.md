@@ -10,7 +10,7 @@ potentials. The input sequences are stored in
 [The Protein Data Bank](https://www.rcsb.org/) `*.pdb` format and reside in the
 `proteins/` directory at the root of this repository. Each file consists of
 a protein X-ray crystal structure and thus includes atomic `X`, `Y`, `Z`
-coordinates of each amino acid (residue) comprising the protein structure. In
+coordinates of each amino acid (residue) comprising the protein. In
 this analysis, we read the sequences of our 309 proteins and compute the
 radius of gyration considering all residues along with that for hydrophobic
 residues only. We then plot both of these quantities along with their ratio
@@ -58,14 +58,14 @@ RES-RES : Energy (kcal/mol)
 
 ## Results
 ### Radius of Gyration
-We coarse grain each protein structure in the data set by filtering to include
+We first coarse grain each protein structure in the data set by filtering to include
 only alpha-carbon residues, those fixed to the backbone chain of the protein.
 We the compute the radius of gyration for the coarse-grained sequence by first
 summing over all residues and then over hydrophobic residues only. We then
 create a scatter plot of each protein radius of gyration (for both all
 residues and hydrophobic residues only) versus the protein chain chain length
 (total number of alpha-carbon amino acids). We then compute and plot the ratio
-of these radii, `Rg_phobic/Rg_all` and again plot the result against protein
+of these radii, `Rg_phobic/Rg_all`, and again plot the result against protein
 chain length. The results are shown below.
 
 ![Rg_length](output/Rg_length.png)
@@ -84,7 +84,7 @@ We compute the statistical interaction potential by computing the fraction of
 all amino acids appearing in our coarse-grained structures along with the
 fraction of all "contact pairs" present. Since there are 20 amino acids, there
 are 210 possible residue pairs. A pair of residues is then declared a
-"contact" if there separation is less than some cutoff distance, here 9
+"contact" if theire separation is less than some cutoff distance, here 9
 Angstroms. We thus compute the statistical potential energy for each amino
 acid contact pair (assuming T = 300 K) from the statistics of our data set
 and normalize the result such that the mean potential energy is zero. This
