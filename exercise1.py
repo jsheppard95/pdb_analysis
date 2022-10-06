@@ -132,6 +132,36 @@ def GetContacts(Pos):
     return Contacts
 
 
+def nExtremaContacts(matrix, n, min_max, AMINO_ACIDS):
+    """
+    Finds the `n` smallest (`min_max`=`np.min`) or largest
+    (`min_max`=`np.max`) values in `matrix`
+    """
+    extrem_contacts = np.empty(n, dtype=object)
+    extrem_energies = np.zeros(n)
+    matrix_search = np.copy(matrix)
+    for i in range(n):
+        next_extrem = min_max(matrix_search)
+        next_idx = np.where(matrix == next_extrem)
+        # Check if we got an off-diagonal element, then take 1st element only,
+        # 2nd -> symmetric interaction
+        if len(next_idx[0]) == 1:
+            idx = [next_idx[0][0], next_idx[0][0]]
+        else:
+            idx = [next_idx[0][0], next_idx[0][1]]
+        interact_str = AMINO_ACIDS[idx[0]] + "-" + AMINO_ACIDS[idx[1]]
+        energy = matrix[idx[0], idx[1]]        
+        extrem_contacts[i] = interact_str
+        extrem_energies[i] = energy
+        # Update this energy in the search matrix so we can find the next
+        # extrema
+        # Do this by setting to 0, since lowest energies negative, highest
+        # positive
+        matrix_search[idx[0], idx[1]] = 0
+        matrix_search[idx[1], idx[0]] = 0
+    return extrem_contacts, extrem_energies
+
+
 # Main function
 # Make a list of all pdb files in the working path (using `glob`)
 # For each pdb file:
@@ -235,11 +265,13 @@ if __name__ == "__main__":
     # Report 5 most and 5 least favorable interaction potentials
     # Most favorable -> Most negative -> 5 smallest of u_kl_norm
     N_MIN = 5
+    min_contacts = np.empty(N_MIN, dtype=object)
+    min_energies = np.zeros(N_MIN)
     u_kl_min_search = np.copy(u_kl_norm)
     print("")
     print("Lowest Interaction Energies:")
-    print("RES - RES : Energy (kcal/mol)")
-    print("-----------------------------")
+    print("RES-RES : Energy (kcal/mol)")
+    print("---------------------------")
     for i in range(N_MIN):
         # Find the "next minimum", lowest on first iter
         next_min = np.min(u_kl_min_search)
@@ -251,13 +283,23 @@ if __name__ == "__main__":
         else:
             idx = [next_idx[0][0], next_idx[0][1]]
         # Print Interaction and Energy
-        print(AMINO_ACIDS[idx[0]], "-", AMINO_ACIDS[idx[1]], ":",
-              u_kl_norm[idx[0], idx[1]])
+        interact_str = AMINO_ACIDS[idx[0]] + "-" + AMINO_ACIDS[idx[1]]
+        energy = u_kl_norm[idx[0], idx[1]]
+        print(interact_str + " : " + str(energy))
+        min_contacts[i] = interact_str
+        min_energies[i] = energy
         # Increase this energy in the search matrix so we can find the next
         # lowest
         u_kl_min_search[idx[0], idx[1]] = 100
         u_kl_min_search[idx[1], idx[0]] = 100
+    print(min_contacts)
+    print(min_energies)
     print("")
+
+    min_contacts_test, min_energies_test = nExtremaContacts(u_kl_norm, N_MIN, np.min, AMINO_ACIDS)
+    print(min_contacts_test)
+    print(min_energies_test)
+
     N_MAX = 5
     u_kl_max_search = np.copy(u_kl_norm)
     print("Highest Interaction Energies:")
@@ -280,6 +322,10 @@ if __name__ == "__main__":
         # highest
         u_kl_max_search[idx[0], idx[1]] = -1
         u_kl_max_search[idx[1], idx[0]] = -1
+
+    max_contacts_test, max_energies_test = nExtremaContacts(u_kl_norm, N_MAX, np.max, AMINO_ACIDS)
+    print(max_contacts_test)
+    print(max_energies_test)
 
     # Plot data
     # Radius of Gyration (All Resiudes and Hydrophobic Resiudes Only)
