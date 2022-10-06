@@ -251,8 +251,10 @@ if __name__ == "__main__":
         else:
             idx = [next_idx[0][0], next_idx[0][1]]
         # Print Interaction and Energy
-        print(AMINO_ACIDS[idx[0]], "-", AMINO_ACIDS[idx[1]], ":", u_kl_norm[idx[0], idx[1]])
-        # Increase this energy in the search matrix so we can find the next lowest
+        print(AMINO_ACIDS[idx[0]], "-", AMINO_ACIDS[idx[1]], ":",
+              u_kl_norm[idx[0], idx[1]])
+        # Increase this energy in the search matrix so we can find the next
+        # lowest
         u_kl_min_search[idx[0], idx[1]] = 100
         u_kl_min_search[idx[1], idx[0]] = 100
     print("")
@@ -262,7 +264,7 @@ if __name__ == "__main__":
     print("RES - RES : Energy (kcal/mol)")
     print("-----------------------------")
     for i in range(N_MAX):
-        # Find the "next minimum", lowest on first iter
+        # Find the "next maximum", highest on first iter
         next_max = np.max(u_kl_max_search)
         next_idx = np.where(u_kl_max_search == next_max)
         # Check if we got an off-diagonal element, then take 1st element only,
@@ -272,8 +274,10 @@ if __name__ == "__main__":
         else:
             idx = [next_idx[0][0], next_idx[0][1]]
         # Print Interaction and Energy
-        print(AMINO_ACIDS[idx[0]], "-", AMINO_ACIDS[idx[1]], ":", u_kl_norm[idx[0], idx[1]])
-        # Increase this energy in the search matrix so we can find the next lowest
+        print(AMINO_ACIDS[idx[0]], "-", AMINO_ACIDS[idx[1]], ":",
+              u_kl_norm[idx[0], idx[1]])
+        # decrease this energy in the search matrix so we can find the next
+        # highest
         u_kl_max_search[idx[0], idx[1]] = -1
         u_kl_max_search[idx[1], idx[0]] = -1
 
@@ -296,8 +300,18 @@ if __name__ == "__main__":
     f2.show()
 
     # potential energy heat map
-    f3, ax3 = plt.subplots()
-    ax3.imshow(u_kl_norm)
+    f3, ax3 = plt.subplots(figsize=(8.0, 6.0))
+    im = ax3.imshow(u_kl_norm, cmap="bone_r")
+    ax3.set_xticks(range(N_AA))
+    ax3.set_yticks(range(N_AA))
+    ax3.set_xticklabels(AMINO_ACIDS, rotation=90)
+    ax3.set_yticklabels(AMINO_ACIDS)
+    ax3.set_xlabel("Residue")
+    ax3.set_ylabel("Residue")
+    ax3.set_title("Amino Acid Contact Statistical Interaction Potential\n"
+                  r"$u_{kl}=-k_BT\ln{\frac{c_{kl}}{f_kf_l}}$,  "
+                  f"T={T} K")
+    f3.colorbar(im, label="Potential Energy (kcal/mol)")
     f3.show()
 
     plt.show()
