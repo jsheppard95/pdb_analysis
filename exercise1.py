@@ -307,8 +307,8 @@ if __name__ == "__main__":
     f2.show()
 
     # potential energy heat map
-    f3, ax3 = plt.subplots(figsize=(8.0, 6.0))
-    im = ax3.imshow(u_kl_norm, cmap="bone_r")
+    f3, (ax3, ax4) = plt.subplots(2, figsize=(6.0, 8.0))
+    im = ax3.imshow(u_kl_norm, cmap="bone_r", extent=[0, 20, 0, 20], aspect="equal")
     ax3.set_xticks(range(N_AA))
     ax3.set_yticks(range(N_AA))
     ax3.set_xticklabels(AMINO_ACIDS, rotation=90)
@@ -318,25 +318,24 @@ if __name__ == "__main__":
     ax3.set_title("Amino Acid Contact Statistical Interaction Potential\n"
                   r"$u_{kl}=-k_BT\ln{\frac{c_{kl}}{f_kf_l}}$,  "
                   f"T={T} K")
-    f3.colorbar(im, label="Potential Energy (kcal/mol)")
-    f3.show()
+    f3.colorbar(im, label="Potential Energy (kcal/mol)", ax=ax3)
 
     # Make table
     table_data = pd.DataFrame({
-        "Lowest Energy Interactions (RES-RES)": min_contacts,
-        "Lowest Energies (kcal/mol)": min_energies,
-        "Highest Energy Interactions (RES-RES)": max_contacts,
-        "Highest Energies (kcal/mol)": max_energies
+        "Lowest Energy Interactions\n(RES-RES)": min_contacts,
+        "Lowest Energies\n(kcal/mol)": min_energies,
+        "Highest Energy Interactions\n(RES-RES)": max_contacts,
+        "Highest Energies\n(kcal/mol)": max_energies
     })
 
-    f4, ax4 = plt.subplots(figsize=(9.6, 7.2))
     table = ax4.table(cellText=table_data.round(decimals=6).values,
                       colLabels=table_data.columns, loc="center")
     table.auto_set_font_size(False)
-    table.set_fontsize(8)
+    table.set_fontsize(7)
+    table.scale(1.1, 1.6)
     ax4.axis("off")
     ax4.axis("tight")
-    f4.tight_layout()
-    f4.show()
+    f3.tight_layout()
+    f3.show()
 
     plt.show()
