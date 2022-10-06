@@ -80,4 +80,20 @@ both radii increase and this hydrophobic property has a less significant
 effect.
 
 ### Statistical Interaction Potential
+We compute the statistical interaction potential by computing the fraction of
+all amino acids appearing in our coarse-grained structures along with the
+fraction of all "contact pairs" present. Since there are 20 amino acids, there
+are 210 possible residue pairs. A pair of residues is then declared a
+"contact" if there separation is less than some cutoff distance, here 9
+Angstroms. We thus compute the statistical potential energy for each amino
+acid contact pair (assuming T = 300 K) from the statistics of our data set
+and normalize the result such that the mean potential energy is zero. This
+yields a symmetric matrix of interaction potentials, since the interaction
+potential between amino acids (i, j) is the same as that between amino acids
+(j, i). We visualize the result as a heat map below:
+
 ![contact_potential](output/contact_potential.png)
+
+Comparing this result with
+[Macromolecules 18, 534 (1985)](https://pubs.acs.org/doi/10.1021/ma00145a039),
+we find reasonable agreement.
