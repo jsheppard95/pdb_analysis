@@ -309,8 +309,8 @@ if __name__ == "__main__":
     # potential energy heat map
     f3, (ax3, ax4) = plt.subplots(2, figsize=(6.0, 8.0))
     im = ax3.imshow(u_kl_norm, cmap="bone_r", extent=[0, 20, 0, 20], aspect="equal")
-    ax3.set_xticks(range(N_AA))
-    ax3.set_yticks(range(N_AA))
+    ax3.set_xticks(np.arange(0.5, N_AA, 1))
+    ax3.set_yticks(np.arange(0.5, N_AA, 1))
     ax3.set_xticklabels(AMINO_ACIDS, rotation=90)
     ax3.set_yticklabels(AMINO_ACIDS)
     ax3.set_xlabel("Residue")
