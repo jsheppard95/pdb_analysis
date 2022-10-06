@@ -150,7 +150,7 @@ def nExtremaContacts(matrix, n, min_max, AMINO_ACIDS):
         else:
             idx = [next_idx[0][0], next_idx[0][1]]
         interact_str = AMINO_ACIDS[idx[0]] + "-" + AMINO_ACIDS[idx[1]]
-        energy = matrix[idx[0], idx[1]]        
+        energy = matrix[idx[0], idx[1]]
         extrem_contacts[i] = interact_str
         extrem_energies[i] = energy
         # Update this energy in the search matrix so we can find the next
@@ -262,70 +262,30 @@ if __name__ == "__main__":
     # upper elements, and subract from each element in u_kl
     u_avg = np.sum(np.triu(u_kl)) / N_PAIRS
     u_kl_norm = u_kl - u_avg
+
     # Report 5 most and 5 least favorable interaction potentials
     # Most favorable -> Most negative -> 5 smallest of u_kl_norm
     N_MIN = 5
-    min_contacts = np.empty(N_MIN, dtype=object)
-    min_energies = np.zeros(N_MIN)
-    u_kl_min_search = np.copy(u_kl_norm)
+    min_contacts, min_energies = nExtremaContacts(u_kl_norm, N_MIN, np.min,
+                                                  AMINO_ACIDS)
     print("")
     print("Lowest Interaction Energies:")
     print("RES-RES : Energy (kcal/mol)")
     print("---------------------------")
     for i in range(N_MIN):
-        # Find the "next minimum", lowest on first iter
-        next_min = np.min(u_kl_min_search)
-        next_idx = np.where(u_kl_min_search == next_min)
-        # Check if we got an off-diagonal element, then take 1st element only,
-        # 2nd -> symmetric interaction
-        if len(next_idx[0]) == 1:
-            idx = [next_idx[0][0], next_idx[0][0]]
-        else:
-            idx = [next_idx[0][0], next_idx[0][1]]
-        # Print Interaction and Energy
-        interact_str = AMINO_ACIDS[idx[0]] + "-" + AMINO_ACIDS[idx[1]]
-        energy = u_kl_norm[idx[0], idx[1]]
-        print(interact_str + " : " + str(energy))
-        min_contacts[i] = interact_str
-        min_energies[i] = energy
-        # Increase this energy in the search matrix so we can find the next
-        # lowest
-        u_kl_min_search[idx[0], idx[1]] = 100
-        u_kl_min_search[idx[1], idx[0]] = 100
-    print(min_contacts)
-    print(min_energies)
+        print(min_contacts[i] + " : " + str(min_energies[i]))
     print("")
 
-    min_contacts_test, min_energies_test = nExtremaContacts(u_kl_norm, N_MIN, np.min, AMINO_ACIDS)
-    print(min_contacts_test)
-    print(min_energies_test)
-
     N_MAX = 5
-    u_kl_max_search = np.copy(u_kl_norm)
+    max_contacts, max_energies = nExtremaContacts(u_kl_norm, N_MAX, np.max,
+                                                  AMINO_ACIDS)
+    print("")
     print("Highest Interaction Energies:")
-    print("RES - RES : Energy (kcal/mol)")
-    print("-----------------------------")
+    print("RES-RES : Energy (kcal/mol)")
+    print("---------------------------")
     for i in range(N_MAX):
-        # Find the "next maximum", highest on first iter
-        next_max = np.max(u_kl_max_search)
-        next_idx = np.where(u_kl_max_search == next_max)
-        # Check if we got an off-diagonal element, then take 1st element only,
-        # 2nd -> symmetric interaction
-        if len(next_idx[0]) == 1:
-            idx = [next_idx[0][0], next_idx[0][0]]
-        else:
-            idx = [next_idx[0][0], next_idx[0][1]]
-        # Print Interaction and Energy
-        print(AMINO_ACIDS[idx[0]], "-", AMINO_ACIDS[idx[1]], ":",
-              u_kl_norm[idx[0], idx[1]])
-        # decrease this energy in the search matrix so we can find the next
-        # highest
-        u_kl_max_search[idx[0], idx[1]] = -1
-        u_kl_max_search[idx[1], idx[0]] = -1
-
-    max_contacts_test, max_energies_test = nExtremaContacts(u_kl_norm, N_MAX, np.max, AMINO_ACIDS)
-    print(max_contacts_test)
-    print(max_energies_test)
+        print(max_contacts[i] + " : " + str(max_energies[i]))
+    print("")
 
     # Plot data
     # Radius of Gyration (All Resiudes and Hydrophobic Resiudes Only)
