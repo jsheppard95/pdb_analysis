@@ -2,7 +2,7 @@
 exercise1.py
 
 Author: Jackson Sheppard
-Last Edit: 10/3/22
+Last Edit: 10/5/22
 """
 import glob
 from itertools import combinations
@@ -151,6 +151,11 @@ if __name__ == "__main__":
                               "VAL", "TRP", "ASP", "GLU", "GLY", "HIS", "LYS",
                               "ASN", "GLN", "ARG", "SER", "THR", "TYR"])
     N_AA = len(AMINO_ACIDS)
+    # N_PAIRS = N_AA!/(N_AA-2)!2! + N interactions
+    #         = N_AA*(N_AA-1)/2 + N
+    N_PAIRS = N_AA*(N_AA - 1)/2 + N_AA
+    kB = 1.987204259e-3  # Boltzmann Constant in kcal/(mol K)
+    T = 300  # Temperature in K, kB*T ~ 0.6 kcal/mol
     # Get all pdb files in working directory
     pdb_files = glob.glob("./**/*.pdb")
 
@@ -202,21 +207,78 @@ if __name__ == "__main__":
                 contact_indeces = np.concatenate(
                     (contact_indeces, contact_indeces)
                 )
-
             # Tally contact counts
             contact_counts[contact_indeces[0], contact_indeces[1]] += 1
-            # count the symmetric interaction
-            contact_counts[contact_indeces[1], contact_indeces[0]] += 1
 
     # Get AA fractions f_k over entire data set
     # indeces -> those in AMINO_ACIDS
-    f_k = aa_counts/np.sum(aa_counts)
+    f_k = aa_counts / np.sum(aa_counts)
 
-    # Smell check - any zeros in contact_counts?
-    print(np.where(contact_counts == 0))
-    print(np.where(f_k == 0))
+    # Get contact fractions
+    c_kl = contact_counts / np.sum(contact_counts)
+    # Stack Overflow magic to fill in zeros with their symmetric contact
+    c_kl = np.maximum(c_kl, c_kl.transpose())
+
+    # Compute interaction potentials
+    # 210 distinct elements:
+    # N = 20, computing symmetric elements of the 400 element matrix here
+    # u_kl = -k_B*T*log(c_kl/(f_k*f_l))
+    # Build matrix F_kl = |f_k><f_l|, then can do element-wise division in log
+    F_kl = np.outer(f_k, f_k)
+    # Calculate potential energy
+    u_kl = -kB*T*np.log(c_kl/F_kl)
+    # Normalize s.t mean potential energy is 0
+    # Compute mean considering only the 210 distinct interactions, the 210
+    # upper elements, and subract from each element in u_kl
+    u_avg = np.sum(np.triu(u_kl)) / N_PAIRS
+    u_kl_norm = u_kl - u_avg
+    # Report 5 most and 5 least favorable interaction potentials
+    # Most favorable -> Most negative -> 5 smallest of u_kl_norm
+    N_MIN = 5
+    u_kl_min_search = np.copy(u_kl_norm)
+    print("")
+    print("Lowest Interaction Energies:")
+    print("RES - RES : Energy (kcal/mol)")
+    print("-----------------------------")
+    for i in range(N_MIN):
+        # Find the "next minimum", lowest on first iter
+        next_min = np.min(u_kl_min_search)
+        next_idx = np.where(u_kl_min_search == next_min)
+        # Check if we got an off-diagonal element, then take 1st element only,
+        # 2nd -> symmetric interaction
+        if len(next_idx[0]) == 1:
+            idx = [next_idx[0][0], next_idx[0][0]]
+        else:
+            idx = [next_idx[0][0], next_idx[0][1]]
+        # Print Interaction and Energy
+        print(AMINO_ACIDS[idx[0]], "-", AMINO_ACIDS[idx[1]], ":", u_kl_norm[idx[0], idx[1]])
+        # Increase this energy in the search matrix so we can find the next lowest
+        u_kl_min_search[idx[0], idx[1]] = 100
+        u_kl_min_search[idx[1], idx[0]] = 100
+    print("")
+    N_MAX = 5
+    u_kl_max_search = np.copy(u_kl_norm)
+    print("Highest Interaction Energies:")
+    print("RES - RES : Energy (kcal/mol)")
+    print("-----------------------------")
+    for i in range(N_MAX):
+        # Find the "next minimum", lowest on first iter
+        next_max = np.max(u_kl_max_search)
+        next_idx = np.where(u_kl_max_search == next_max)
+        # Check if we got an off-diagonal element, then take 1st element only,
+        # 2nd -> symmetric interaction
+        if len(next_idx[0]) == 1:
+            idx = [next_idx[0][0], next_idx[0][0]]
+        else:
+            idx = [next_idx[0][0], next_idx[0][1]]
+        # Print Interaction and Energy
+        print(AMINO_ACIDS[idx[0]], "-", AMINO_ACIDS[idx[1]], ":", u_kl_norm[idx[0], idx[1]])
+        # Increase this energy in the search matrix so we can find the next lowest
+        u_kl_max_search[idx[0], idx[1]] = -1
+        u_kl_max_search[idx[1], idx[0]] = -1
 
     # Plot data
+    # Radius of Gyration (All Resiudes and Hydrophobic Resiudes Only)
     f1, ax1 = plt.subplots()
     ax1.plot(chain_lengths, Rg_alls, ".", label=r"All Residues, $R_g$")
     ax1.plot(chain_lengths, Rg_phobics, ".",
@@ -226,10 +288,16 @@ if __name__ == "__main__":
     ax1.set_ylabel(r"Radius of Gyration, $\AA$")
     f1.show()
 
+    # Rg,phobic/Rg,all0
     f2, ax2 = plt.subplots()
     ax2.plot(chain_lengths, Rg_ratios, ".")
     ax2.set_xlabel("Chain Length (Number of Residues)")
     ax2.set_ylabel(r"Ratio Hydrophobic to All, $R_{g,phobic}/R_g$")
     f2.show()
+
+    # potential energy heat map
+    f3, ax3 = plt.subplots()
+    ax3.imshow(u_kl_norm)
+    f3.show()
 
     plt.show()
